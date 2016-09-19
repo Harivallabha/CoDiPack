@@ -219,9 +219,9 @@ struct OP : public Expression<Real, OP<Real, A> > {
    * @tparam     Data  The type of the data for the action.
    * @tparam     Func  The type of the function that is called.
    */
-  template<typename Tape, typename Data, typename Func>
-  CODI_INLINE void constantValueAction(Tape& tape, Data data, Func func) const {
-    a_.constantValueAction(tape, data, func);
+  template<typename Data, typename Func>
+  CODI_INLINE void constantValueAction(Data data, Func func) const {
+    a_.constantValueAction(data, func);
   }
 
   /**

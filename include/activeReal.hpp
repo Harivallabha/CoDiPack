@@ -252,9 +252,8 @@ namespace codi {
      * @tparam     Data  The type of the data for the action.
      * @tparam     Func  The type of the function that is called.
      */
-    template<typename CallTape, typename Data, typename Func>
-    CODI_INLINE void constantValueAction(CallTape& tape, Data data, Func func) const {
-      CODI_UNUSED(tape);
+    template<typename Data, typename Func>
+    CODI_INLINE void constantValueAction(Data data, Func func) const {
       CODI_UNUSED(data);
       CODI_UNUSED(func);
     }
@@ -270,7 +269,7 @@ namespace codi {
      */
     template<typename Data, typename Func>
     CODI_INLINE void valueAction(Data data, Func func) const {
-      CODI_CALL_MEMBER_FN(globalTape, func)(data, primalValue, gradientData);
+      func(data, primalValue, gradientData);
     }
 
     /**

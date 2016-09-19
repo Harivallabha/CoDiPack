@@ -281,10 +281,10 @@ struct OP11: public Expression<Real, OP11<Real, A, B> > {
      * @tparam     Data  The type of the data for the action.
      * @tparam     Func  The type of the function that is called.
      */
-    template<typename Tape, typename Data, typename Func>
-    CODI_INLINE void constantValueAction(Tape& tape, Data data, Func func) const {
-      a_.constantValueAction(tape, data, func);
-      b_.constantValueAction(tape, data, func);
+    template<typename Data, typename Func>
+    CODI_INLINE void constantValueAction(Data data, Func func) const {
+      a_.constantValueAction(data, func);
+      b_.constantValueAction(data, func);
     }
 
     /**
@@ -455,10 +455,10 @@ struct OP10: public Expression<Real, OP10<Real, A> > {
      * @tparam     Data  The type of the data for the action.
      * @tparam     Func  The type of the function that is called.
      */
-    template<typename Tape, typename Data, typename Func>
-    CODI_INLINE void constantValueAction(Tape& tape, Data data, Func func) const {
-      a_.constantValueAction(tape, data, func);
-      CODI_CALL_MEMBER_FN(tape, func)(data, b_);
+    template<typename Data, typename Func>
+    CODI_INLINE void constantValueAction(Data data, Func func) const {
+      a_.constantValueAction(data, func);
+      func(data, b_);
     }
 
     /**
@@ -628,10 +628,10 @@ struct OP01 : public Expression<Real, OP01<Real, B> > {
      * @tparam     Data  The type of the data for the action.
      * @tparam     Func  The type of the function that is called.
      */
-    template<typename Tape, typename Data, typename Func>
-    CODI_INLINE void constantValueAction(Tape& tape, Data data, Func func) const {
-      CODI_CALL_MEMBER_FN(tape, func)(data, a_);
-      b_.constantValueAction(tape, data, func);
+    template<typename Data, typename Func>
+    CODI_INLINE void constantValueAction(Data data, Func func) const {
+      func(data, a_);
+      b_.constantValueAction(data, func);
     }
 
     /**

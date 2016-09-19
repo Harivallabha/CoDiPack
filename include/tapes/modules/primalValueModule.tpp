@@ -392,6 +392,52 @@
   // Public function from the TapeInterface and ReverseTapeInterface
   // ----------------------------------------------------------------------
 
+    struct CountActives {
+
+      int& activeCount;
+
+      CountActives(int& activeCount) : activeCount(activeCount) {};
+
+      void operator () (long int, const Real& real, const GradientData& index) {
+        CODI_UNUSED(real);
+        if(0 != index) {
+          activeCount += 1;
+        }
+      }
+    };
+       
+    template<typename Tape> 
+    struct PushIndices {
+
+      int passiveVariableCount;
+      Tape& tape;
+
+      PushIndices(Tape& tape) : passiveVariableCount(0), tape(tape) {};
+
+      void operator () (long int data, const Real& real, const GradientData& index) {
+        IndexType pushIndex = index;
+        if(0 == pushIndex) {
+          passiveVariableCount += 1;
+          pushIndex = passiveVariableCount;
+          tape.constantValueVector.setDataAndMove(real);
+        }
+
+        tape.indexVector.setDataAndMove(pushIndex);
+      }
+    };
+
+    template<typename Tape> 
+    struct PushPassives {
+
+      Tape& tape;
+
+      PushPassives(Tape& tape) : tape(tape) {};
+
+      void operator () (long int data, const PassiveReal& value) {
+        CODI_UNUSED(data);
+        tape.constantValueVector.setDataAndMove(value);
+      }
+    };
     /**
      * @brief Store the indices of the statement on the tape.
      *
@@ -417,22 +463,20 @@
       ENABLE_CHECK(OptTapeActivity, active){
 
         int activeCount = 0;
-        rhs.valueAction(&activeCount, &TAPE_NAME<TapeTypes>::countActiveValues);
+        rhs.valueAction(NULL, CountActives(activeCount));
 
         if(0 != activeCount) {
           int passiveVariableNumber = ExpressionTraits<Rhs>::maxActiveVariables - activeCount;
 
           constantValueVector.reserveItems(ExpressionTraits<Rhs>::maxConstantVariables + passiveVariableNumber); // the additional passives are create in pushIndices
           size_t constantSize = constantValueVector.getChunkPosition();
-          rhs.constantValueAction(*this, NULL, &TAPE_NAME<TapeTypes>::pushPassive);
+          rhs.constantValueAction(NULL, PushPassives<TAPE_NAME<TapeTypes> >(*this));
           codiAssert(ExpressionTraits<Rhs>::maxConstantVariables == constantValueVector.getChunkPosition() - constantSize);
 
           indexVector.reserveItems(ExpressionTraits<Rhs>::maxActiveVariables);
           size_t indexSize = indexVector.getChunkPosition();
-          int passieveVariableCount = 0;
-          rhs.valueAction(&passieveVariableCount, &TAPE_NAME<TapeTypes>::pushIndices);
           codiAssert(ExpressionTraits<Rhs>::maxActiveVariables == indexVector.getChunkPosition() - indexSize);
-          codiAssert(passieveVariableCount == passiveVariableNumber);
+          rhs.valueAction(NULL, PushIndices<TAPE_NAME<TapeTypes>>(*this));
 
           pushStmtData(lhsIndex, rhs.getValue(), ExpressionHandleStore<Real*, Real, IndexType, Rhs>::getHandle(), passiveVariableNumber);
 
